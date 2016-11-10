@@ -24,3 +24,7 @@ Raw_Spectrum_Setup<-reactive({
 #
 #
 #  
+##Transparent colors for plotting
+trans_black<- rgb(0,0,0,alpha=40,maxColorValue=255)
+trans_red<- rgb(228,16,16,alpha=40,maxColorValue=255)
+trans_green<- rgb(16,228,16,alpha=40,maxColorValue=255)

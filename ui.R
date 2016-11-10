@@ -70,11 +70,12 @@ shinyUI(fluidPage(
                            column(4,
                                   radioButtons("llselect","Length Limit (inches):",
                                               choices = c("llinput()[[1]]",
-                                                        "llinput()[[2]]","llinput()[[3]]")))
+                                                        "llinput()[[2]]","llinput()[[3]]",
+                                                        "showall"= "Show All")))
                            ),
                                   br(),  
                           textOutput("text1"),
-                                  plotOutput("plot", height = 300)
+                                  plotOutput("plot", height = 350)
                   )
                   
                   )))
