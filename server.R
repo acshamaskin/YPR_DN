@@ -163,55 +163,40 @@ output$text1<-renderText({
 
 data <- reactive({
   dat<-vals()
-  if(input$llselect=="Show All"){
     datt <-switch(input$datt,
                   Yield = data.frame(dat$Yab,dat$mll),
                   AverageWt = data.frame(dat$AvgWt,dat$mll),
                   HarvestRate = data.frame(dat$Harvestrate,dat$mll),
                   QualityHarvest = data.frame(dat$QualityHarvest,dat$mll)
     )
-    return(datt)} 
-  else{llselect<-as.numeric(input$llselect)*25.4 
-  dat<-subset(dat,mll==llselect)
-  datt <-switch(input$datt,
-                Yield = dat$Yab,
-                AverageWt = dat$AvgWt,
-                HarvestRate = dat$Harvestrate,
-                QualityHarvest = dat$QualityHarvest
-  )
-  return(datt)}
+    return(datt)
 })
 
 output$plot<-renderPlot({
   datt<-input$datt
   llselect<-input$llselect
-  if(input$llselect=="Show All"){
     den<-data()
     xlim<-range(den[,1])
     mll<-unique(den[,2])
     dena<-subset(den,den[,2]==mll[1])
     denb<-subset(den,den[,2]==mll[2])
     denc<-subset(den,den[,2]==mll[3])
-    # dena<-dena[,1]
-    #  denb<-denb[,1]
-    # denc<-denc[,1]
     dena<-density(dena[,1])
     denb<-density(denb[,1])
     denc<-density(denc[,1])
     ylim<-range(dena$y,denb$y,denc$y)
+    if(input$llselect=="Show All"){
     plot(dena,col="black", type="l",xlim=xlim,ylim=ylim,xlab=paste(datt),main=paste(datt, 'for all length limits',sep=' '))
     polygon(dena,col=trans_black)
     lines(denb)
     polygon(denb,col=trans_red)
     lines(denc)
     polygon(denc,col=trans_green)} 
-  ######
-  #if(input$llselect=="Show All") {d<-data()
-  #sm.density.compare(d[,1],d[,2], xlab=paste(datt, 'for all length limits',sep=' '))} 
-  
-  else{d<-density(data())
-  plot(d,main=paste(datt, 'for',llselect,'inch length limit',sep=' ' ))
-  polygon(d, col=trans_red)}
+ 
+  else{d<-subset(den,den[,2]==(as.numeric(llselect)*25.4))
+  d<-density(d[,1])
+  plot(d,xlim=xlim,ylim=ylim,xlab=paste(datt),main=paste(datt, 'for',llselect,'inch length limit',sep=' ' ))
+  polygon(d, col=trans_black)}
   #hist(data(),main=paste(datt, 'for',llselect,'inch length limit',sep=' ' ))
 })
 
