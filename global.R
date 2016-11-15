@@ -36,8 +36,8 @@
 #
 #saveRDS(COMBOS,"C:/Users/Andrew Shamaskin/Google Drive/YPR/YPR_NEW/YPR_DN/COMBOS.rds")
 #
-COMBOS<-readRDS(file = "C:/Users/Andrew Shamaskin/Google Drive/YPR/YPR_NEW/YPR_DN/COMBOS.rds")
-#  
+#COMBOS<-readRDS(file = "C:/Users/Andrew Shamaskin/Google Drive/YPR/YPR_NEW/YPR_DN/COMBOS.rds")
+COMBOS<-readRDS(file = "C:/Users/Andrew Shamaskin/Desktop/GitHub/YPR_DN/COMBOS.rds") 
 ##Transparent colors for plotting
 trans_black<- rgb(0,0,0,alpha=40,maxColorValue=255)
 trans_red<- rgb(228,16,16,alpha=40,maxColorValue=255)
