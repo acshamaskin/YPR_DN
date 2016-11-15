@@ -1,15 +1,16 @@
 #server.R
 library(shiny)
 library(plyr)
-
+#library(sm)
 source('global.R',local=TRUE)
 
 shinyServer(function(input, output, session) {
-######OLD CODE IS IN global.R#######
+  ######OLD CODE IS IN global.R#######
   
   sim_dat<- function()
   {
-    sim<- Raw_Spectrum_Setup()
+    #sim<- Raw_Spectrum_Setup()
+    sim<-COMBOS
     #bring in mll
     sim$quality<-as.numeric(unlist(strsplit(input$quality,",")))
     sim$quality<-sim$quality*25.4
@@ -76,128 +77,135 @@ shinyServer(function(input, output, session) {
     sim$QualityHarvest<-QH1[,ncol(QH1)]/(maxage-sim$tr)
     return(sim)
   })
-######PUT SUBSET HERE TO MAKE IT GO FASTER#######
-vals<-function()
-{
-  tmp<-preppop()
-  indx1<-NULL
-  if(input$Linf==1){indx1<-c(300,333)}
-  if(input$Linf==2){indx1<-c(334,366)}
-  if(input$Linf==3){indx1<-c(367,400)}
-  indx2<-NULL
-  if(input$A==1){indx2<-c(0.01,0.30)}
-  if(input$A==2){indx2<-c(0.31,0.60)}
-  if(input$A==3){indx2<-c(0.61,0.90)}
-  indx3<-NULL
-  if(input$up==1){indx3<-c(0.01,0.30)}
-  if(input$up==2){indx3<-c(0.31,0.60)}
-  if(input$up==3){indx3<-c(0.61,0.90)}
-  indx4<-NULL
-  if(input$b==1){indx4<-c(3.10,3.23)}
-  if(input$b==2){indx4<-c(3.24,3.36)}
-  if(input$b==3){indx4<-c(3.37,3.50)}
-  tmp<-subset(tmp,
-                (Linf>=min(indx1)) & (Linf<=max(indx1)) &
-                (A>=min(indx2)) & (A<=max(indx2)) &
-                (uprop>=min(indx3)) & (uprop<=max(indx3)) &
-                (b>=min(indx4)) & (b<=max(indx4)))
-  #tmp$quality<-as.numeric(unlist(strsplit(input$quality,",")))
-  #tmp$quality<-tmp$quality*25.4
-  #add all your inputs 
-  #out$t0<-runif(input$nlakes,min(input$t0),max(input$t0)) example of previous method
-  # out$nLakes<-input$nLakes
-  sim<-tmp
-  return(sim)
-}
-#utility scores
-utilities<-function()
-{
-  weights<-list()
-  weights$Yieldweight<-input$Yieldweight
-  weights$AvgWtweight<-input$AvgWtweight
-  weights$Hrateweight<-input$Hrateweight
-  weights$QHrateweight<-input$QHrateweight
-  return(weights)
-}
-
-LLscore<-reactive({
-  output<-vals()
-  weights<-utilities()
-  ##RANK LENGTH LIMITS BASED ON NormalYield+NormalAvgWt
-  scoringYield<-aggregate(Yab~mll,output,mean)
-  scoringAvgWt<-aggregate(AvgWt~mll,output,mean)
-  scoringHrate<-aggregate(Harvestrate~mll,output,mean)
-  scoringQHrate<-aggregate(QualityHarvest~mll,output,mean)
-  Scores<-join_all(list(scoringYield,scoringAvgWt,scoringHrate,scoringQHrate),by="mll")
-  #Scores<-merge(scoringYield,scoringAvgWt,scoringHrate,scoringQHrate,by="mll")
-  Scores$Yieldscore<-((Scores$Yab-min(Scores$Yab))/(max(Scores$Yab)-min(Scores$Yab)))*100*utilities()$Yieldweight
-  Scores$AvgWtscore<-((Scores$AvgWt-min(Scores$AvgWt))/(max(Scores$AvgWt)-min(Scores$AvgWt)))*100*utilities()$AvgWtweight
-  Scores$Hratescore<-((Scores$Harvestrate-min(Scores$Harvestrate))/(max(Scores$Harvestrate)-min(Scores$Harvestrate)))*100*utilities()$Hrateweight
-  Scores$QHratescore<-((Scores$QualityHarvest-min(Scores$QualityHarvest))/(max(Scores$QualityHarvest)-min(Scores$QualityHarvest)))*100*utilities()$QHrateweight
-  Scores$Total<-Scores$Yieldscore+Scores$AvgWtscore+Scores$Hratescore+Scores$QHratescore
-  Scores$mll<-round((Scores$mll/25.4),0)
+  ######PUT SUBSET HERE TO MAKE IT GO FASTER#######
+  vals<-function()
+  {
+    tmp<-preppop()
+    
+    tmp<-subset(tmp,
+                (rLinf %in% as.numeric(input$Linf)) &
+                  (rA %in% as.numeric(input$A)) &
+                  (ruprop %in% as.numeric(input$up)) &
+                  (rb %in% as.numeric(input$b)))
+    #(Linf>=min(indx1)) & (Linf<=max(indx1)) &
+    #(A>=min(indx2)) & (A<=max(indx2)) &
+    #(uprop>=min(indx3)) & (uprop<=max(indx3)) &
+    #(b>=min(indx4)) & (b<=max(indx4)))
+    #tmp$quality<-as.numeric(unlist(strsplit(input$quality,",")))
+    #tmp$quality<-tmp$quality*25.4
+    #add all your inputs 
+    #out$t0<-runif(input$nlakes,min(input$t0),max(input$t0)) example of previous method
+    # out$nLakes<-input$nLakes
+    sim<-tmp
+    return(sim)
+  }
+  #utility scores
+  utilities<-function()
+  {
+    weights<-list()
+    weights$Yieldweight<-input$Yieldweight
+    weights$AvgWtweight<-input$AvgWtweight
+    weights$Hrateweight<-input$Hrateweight
+    weights$QHrateweight<-input$QHrateweight
+    return(weights)
+  }
   
-  return(Scores)
-})
-
-output$ScoreLL<-renderTable({
-  LLscore()
-})
-
-##Dynamically gives LL radio buttons an updated list of choices
-llinput<-reactive({
-  llinput<-unique(vals()$mll)
-  llinput<-llinput/25.4
- # llinput<-list(llinput)
-
-  return(llinput)
-})
-observe({
-  updateRadioButtons(session, "llselect", choices = c(llinput()[[1]],llinput()[[2]],llinput()[[3]],"Show All"))
-})
-
-output$text1<-renderText({
-  paste("You have selected", input$llselect)
-})
-
-
-data <- reactive({
-  dat<-vals()
+  LLscore<-reactive({
+    output<-vals()
+    weights<-utilities()
+    ##RANK LENGTH LIMITS BASED ON NormalYield+NormalAvgWt
+    scoringYield<-aggregate(Yab~mll,output,mean)
+    scoringAvgWt<-aggregate(AvgWt~mll,output,mean)
+    scoringHrate<-aggregate(Harvestrate~mll,output,mean)
+    scoringQHrate<-aggregate(QualityHarvest~mll,output,mean)
+    Scores<-join_all(list(scoringYield,scoringAvgWt,scoringHrate,scoringQHrate),by="mll")
+    #Scores<-merge(scoringYield,scoringAvgWt,scoringHrate,scoringQHrate,by="mll")
+    Scores$Yieldscore<-((Scores$Yab-min(Scores$Yab))/(max(Scores$Yab)-min(Scores$Yab)))*100*utilities()$Yieldweight
+    Scores$AvgWtscore<-((Scores$AvgWt-min(Scores$AvgWt))/(max(Scores$AvgWt)-min(Scores$AvgWt)))*100*utilities()$AvgWtweight
+    Scores$Hratescore<-((Scores$Harvestrate-min(Scores$Harvestrate))/(max(Scores$Harvestrate)-min(Scores$Harvestrate)))*100*utilities()$Hrateweight
+    Scores$QHratescore<-((Scores$QualityHarvest-min(Scores$QualityHarvest))/(max(Scores$QualityHarvest)-min(Scores$QualityHarvest)))*100*utilities()$QHrateweight
+    Scores$Total<-Scores$Yieldscore+Scores$AvgWtscore+Scores$Hratescore+Scores$QHratescore
+    Scores$mll<-round((Scores$mll/25.4),0)
+    
+    return(Scores)
+  })
+  
+  output$ScoreLL<-renderTable({
+    LLscore()
+  })
+  
+  ##Dynamically gives LL radio buttons an updated list of choices
+  llinput<-reactive({
+    llinput<-unique(vals()$mll)
+    llinput<-llinput/25.4
+    # llinput<-list(llinput)
+    
+    return(llinput)
+  })
+  observe({
+    updateRadioButtons(session, "llselect", choices = c(llinput()[[1]],llinput()[[2]],llinput()[[3]],"Show All"))
+  })
+  
+  output$text1<-renderText({
+    paste("You have selected", input$llselect)
+  })
+  
+  
+  data <- reactive({
+    dat<-vals()
+    #if(input$llselect=="Show All"){ ####11/14/16 took out if statement so the plots can have the same axes
     datt <-switch(input$datt,
                   Yield = data.frame(dat$Yab,dat$mll),
                   AverageWt = data.frame(dat$AvgWt,dat$mll),
                   HarvestRate = data.frame(dat$Harvestrate,dat$mll),
                   QualityHarvest = data.frame(dat$QualityHarvest,dat$mll)
     )
-    return(datt)
-})
-
-output$plot<-renderPlot({
-  datt<-input$datt
-  llselect<-input$llselect
+    return(datt) 
+    #else{llselect<-as.numeric(input$llselect)*25.4 
+    #dat<-subset(dat,mll==llselect)
+    #datt <-switch(input$datt,
+    #              Yield = dat$Yab,
+    #              AverageWt = dat$AvgWt,
+    #              HarvestRate = dat$Harvestrate,
+    #              QualityHarvest = dat$QualityHarvest
+    #              )
+    #return(datt)}
+  })
+  
+  output$plot<-renderPlot({
+    datt<-input$datt
+    llselect<-input$llselect
+    # if(input$llselect=="Show All"){
+    ###SHOW ALL DENSITY PLOT###
     den<-data()
     xlim<-range(den[,1])
     mll<-unique(den[,2])
     dena<-subset(den,den[,2]==mll[1])
     denb<-subset(den,den[,2]==mll[2])
     denc<-subset(den,den[,2]==mll[3])
+    # dena<-dena[,1]
+    #  denb<-denb[,1]
+    # denc<-denc[,1]
     dena<-density(dena[,1])
     denb<-density(denb[,1])
     denc<-density(denc[,1])
     ylim<-range(dena$y,denb$y,denc$y)
     if(input$llselect=="Show All"){
-    plot(dena,col="black", type="l",xlim=xlim,ylim=ylim,xlab=paste(datt),main=paste(datt, 'for all length limits',sep=' '))
-    polygon(dena,col=trans_black)
-    lines(denb)
-    polygon(denb,col=trans_red)
-    lines(denc)
-    polygon(denc,col=trans_green)} 
- 
-  else{d<-subset(den,den[,2]==(as.numeric(llselect)*25.4))
-  d<-density(d[,1])
-  plot(d,xlim=xlim,ylim=ylim,xlab=paste(datt),main=paste(datt, 'for',llselect,'inch length limit',sep=' ' ))
-  polygon(d, col=trans_black)}
-  #hist(data(),main=paste(datt, 'for',llselect,'inch length limit',sep=' ' ))
-})
-
+      plot(dena,col="black", type="l",xlim=xlim,ylim=ylim,xlab=paste(datt),main=paste(datt, 'for all length limits',sep=' '))
+      polygon(dena,col=trans_black)
+      lines(denb)
+      polygon(denb,col=trans_red)
+      lines(denc)
+      polygon(denc,col=trans_green)} 
+    ######
+    #if(input$llselect=="Show All") {d<-data()
+    #sm.density.compare(d[,1],d[,2], xlab=paste(datt, 'for all length limits',sep=' '))} 
+    ####INDIVIDUAL LL DENSITY####
+    else{d<-subset(den,den[,2]==(as.numeric(llselect)*25.4))
+    d<-density(d[,1])
+    plot(d,xlim=xlim,ylim=ylim,xlab=paste(datt),main=paste(datt, 'for',llselect,'inch length limit',sep=' ' ))
+    polygon(d, col=trans_black)}
+    #hist(data(),main=paste(datt, 'for',llselect,'inch length limit',sep=' ' ))
+  })
+  
 })
