@@ -99,20 +99,22 @@ shinyServer(function(input, output, session) {
     sim<-tmp
     return(sim)
   }
-  #utility scores
-  utilities<-function()
-  {
-    weights<-list()
-    weights$Yieldweight<-input$Yieldweight
-    weights$AvgWtweight<-input$AvgWtweight
-    weights$Hrateweight<-input$Hrateweight
-    weights$QHrateweight<-input$QHrateweight
-    return(weights)
-  }
+  #####utility scores 11/30/2016 Method to Normalize utility scores
   
+  #function to normalize inputs
+  attrib_norm<-reactive({
+    A_init<-c(input$Yieldweight,input$AvgWtweight,input$Hrateweight,input$QHrateweight)
+    A_tot<-sum(A_init)
+    A_norm<-A_init
+    for(i in 1:length(A_init)){
+      A_norm[i]<-A_init[i]/A_tot  
+    }
+    return(A_norm)
+  })
+
   LLscore<-reactive({
     output<-vals()
-    weights<-utilities()
+    A_norm<-attrib_norm()
     ##RANK LENGTH LIMITS BASED ON NormalYield+NormalAvgWt
     scoringYield<-aggregate(Yab~mll,output,mean)
     scoringAvgWt<-aggregate(AvgWt~mll,output,mean)
@@ -120,10 +122,10 @@ shinyServer(function(input, output, session) {
     scoringQHrate<-aggregate(QualityHarvest~mll,output,mean)
     Scores<-join_all(list(scoringYield,scoringAvgWt,scoringHrate,scoringQHrate),by="mll")
     #Scores<-merge(scoringYield,scoringAvgWt,scoringHrate,scoringQHrate,by="mll")
-    Scores$Yieldscore<-((Scores$Yab-min(Scores$Yab))/(max(Scores$Yab)-min(Scores$Yab)))*100*utilities()$Yieldweight
-    Scores$AvgWtscore<-((Scores$AvgWt-min(Scores$AvgWt))/(max(Scores$AvgWt)-min(Scores$AvgWt)))*100*utilities()$AvgWtweight
-    Scores$Hratescore<-((Scores$Harvestrate-min(Scores$Harvestrate))/(max(Scores$Harvestrate)-min(Scores$Harvestrate)))*100*utilities()$Hrateweight
-    Scores$QHratescore<-((Scores$QualityHarvest-min(Scores$QualityHarvest))/(max(Scores$QualityHarvest)-min(Scores$QualityHarvest)))*100*utilities()$QHrateweight
+    Scores$Yieldscore<-((Scores$Yab-min(Scores$Yab))/(max(Scores$Yab)-min(Scores$Yab)))*100*A_norm[1]
+    Scores$AvgWtscore<-((Scores$AvgWt-min(Scores$AvgWt))/(max(Scores$AvgWt)-min(Scores$AvgWt)))*100*A_norm[2]
+    Scores$Hratescore<-((Scores$Harvestrate-min(Scores$Harvestrate))/(max(Scores$Harvestrate)-min(Scores$Harvestrate)))*100*A_norm[3]
+    Scores$QHratescore<-((Scores$QualityHarvest-min(Scores$QualityHarvest))/(max(Scores$QualityHarvest)-min(Scores$QualityHarvest)))*100*A_norm[4]
     Scores$Total<-Scores$Yieldscore+Scores$AvgWtscore+Scores$Hratescore+Scores$QHratescore
     Scores$mll<-round((Scores$mll/25.4),0)
     

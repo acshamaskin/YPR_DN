@@ -32,23 +32,24 @@ shinyUI(fluidPage(
                          label =h6("Length Limit (Inches)"), value = "9,10,11"))
         
       ),
-      h4("Utilities"),
+      h4("Utilities (each between 0-100)"),
       fluidRow(
         column(4,
-               numericInput("Yieldweight",
-                          label =h6("Yield"), value = 0.25)),
-        
+               sliderInput("Yieldweight",
+                           label=h6("Yield:"), min = 0, max = 100, value= 25, round = 0)),
+ 
         column(4,
-               numericInput("AvgWtweight",
-                            label =h6("Average Weight:"), value = 0.25))                  
+               sliderInput("AvgWtweight",
+                           label=h6("Average Weight:"), min = 0, max = 100, value= 25, round = 0))
       ),
       fluidRow(
         column(4,
-               numericInput("Hrateweight",
-                            label =h6("Harvest Rate:"), value = 0.25)),
+               sliderInput("Hrateweight",
+                           label=h6("Harvest Rate:"), min = 0, max = 100, value= 25, round = 0)),
+      
         column(4,
-               numericInput("QHrateweight",
-                         label =h6("Big Fish Harvest:"), value = 0.25))  
+               sliderInput("QHrateweight",
+                           label=h6("Big Fish Harvest:"), min = 0, max = 100, value= 25, round = 0))
       
       )),
     mainPanel(
