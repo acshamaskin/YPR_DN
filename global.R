@@ -16,20 +16,40 @@
 #  #lnk<- 6.62-1.32*(log(COMBOS$Linf))
 #  COMBOS$k<-exp(6.62-1.32*(log(COMBOS$Linf)))
 #  COMBOS$a<-10^COMBOS$aui
-#  for(i in 1:nrow(COMBOS)){
-#    COMBOS$rLinf[i]<-ifelse(COMBOS$Linf[i]>=300 & COMBOS$Linf[i]<=333,1,
-#                            ifelse(COMBOS$Linf[i]>=334 & COMBOS$Linf[i]<=366,2,
-#                                   ifelse(COMBOS$Linf[i]>=367 & COMBOS$Linf[i]<=400,3,COMBOS$rLinf[i])))
-#    COMBOS$rA[i]<-ifelse(COMBOS$A[i]>=0.250 & COMBOS$A[i]<=0.416,1,
-#                         ifelse(COMBOS$A[i]>=0.417 & COMBOS$A[i]<=0.583,2,
-#                                ifelse(COMBOS$A[i]>=0.584 & COMBOS$A[i]<=0.750,3,COMBOS$rA[i])))
-#    COMBOS$ruprop[i]<-ifelse(COMBOS$uprop[i]>=0.010 & COMBOS$uprop[i]<=0.300,1,
-#                             ifelse(COMBOS$uprop[i]>=0.310 & COMBOS$uprop[i]<=0.600,2,
-#                                    ifelse(COMBOS$uprop[i]>=0.610 & COMBOS$uprop[i]<=0.900,3,COMBOS$ruprop[i])))
-#    COMBOS$rb[i]<-ifelse(COMBOS$b[i]>=3.100 & COMBOS$b[i]<=3.230,1,
-#                         ifelse(COMBOS$b[i]>=3.231 & COMBOS$b[i]<=3.360,2,
-#                                ifelse(COMBOS$b[i]>=3.361 & COMBOS$b[i]<=3.500,3,COMBOS$rb[i])))
-#  }
+#  COMBOS$rLinf<-1
+#  COMBOS$rA<-1
+#  COMBOS$ruprop<-1
+#  COMBOS$rb<-1
+#  
+#  ###Subsets### To assign bin scores (1,2 or 3) 
+#  #rLinf
+#  tmp<-subset(COMBOS, Linf>=334 & Linf <=366)
+#  tmp$rLinf<-2
+#  tmpp<-subset(COMBOS,Linf>=367 & Linf <=400)
+#  tmpp$rLinf<-3
+#  tmppp<-subset(COMBOS, Linf<=333)
+#  COMBOS<-rbind(tmp,tmpp,tmppp)
+#  #rA                        
+#  tmp<-subset(COMBOS, A>=0.417 & A <=0.583)
+#  tmp$rA<-2
+#  tmpp<-subset(COMBOS,A>=0.584 & A <=0.750)
+#  tmpp$rA<-3
+#  tmppp<-subset(COMBOS, A<=0.416)
+#  COMBOS<-rbind(tmp,tmpp,tmppp)
+#  #ruprop                        
+#  tmp<-subset(COMBOS, uprop>=0.310 & uprop <=0.600)
+#  tmp$ruprop<-2
+#  tmpp<-subset(COMBOS,uprop>=0.601 & uprop <=0.900)
+#  tmpp$ruprop<-3
+#  tmppp<-subset(COMBOS, uprop<=0.309)
+#  COMBOS<-rbind(tmp,tmpp,tmppp)
+#  #rb                       
+#  tmp<-subset(COMBOS, b>=3.231 & b<=3.360)
+#  tmp$rb<-2
+#  tmpp<-subset(COMBOS, b>=3.361 & b<=3.500)
+#  tmpp$rb<-3
+#  tmppp<-subset(COMBOS, rb<=3.230)
+#  COMBOS<-rbind(tmp,tmpp,tmppp)
 #  return(COMBOS)
 #}) 
 #
